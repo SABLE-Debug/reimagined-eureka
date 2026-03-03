@@ -1,9 +1,24 @@
 import type { Metadata } from "next";
+import type { Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Fundamental Bias Radar",
   description: "Mobile-first trading dashboard with daily fundamental bias across 10 assets.",
+  applicationName: "Fundamental Bias Radar",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Bias Radar",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#05070b",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
