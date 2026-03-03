@@ -1,0 +1,140 @@
+//@version=6
+indicator("SMC Flip Zone Model (Buy + Sell)", overlay=true, max_labels_count=500, max_boxes_count=200)
+
+// ----------------------------
+// Inputs
+// ----------------------------
+pivotLen            = input.int(3, "Swing Pivot Length", minval=1)
+zoneAtrMult         = input.float(0.15, "Flip Zone ATR Multiplier", minval=0.01, step=0.01)
+zoneLifeBars        = input.int(30, "Flip Zone Validity (bars)", minval=1)
+showBosLabels       = input.bool(true, "Show BOS Labels")
+showChochLabels     = input.bool(true, "Show CHoCH Labels")
+showFlipZones       = input.bool(true, "Show Flip Zones")
+confirmCandles      = input.bool(true, "Require Confirmation Candle")
+
+useHTFFilter        = input.bool(false, "Use HTF Trend Filter")
+htfTf               = input.timeframe("240", "HTF Timeframe")
+htfMaLen            = input.int(50, "HTF EMA Length", minval=1)
+
+// ----------------------------
+// Core series
+// ----------------------------
+atr = ta.atr(14)
+zonePad = atr * zoneAtrMult
+
+ph = ta.pivothigh(high, pivotLen, pivotLen)
+pl = ta.pivotlow(low, pivotLen, pivotLen)
+
+var float lastSwingHigh = na
+var float lastSwingLow  = na
+
+if not na(ph)
+    lastSwingHigh := ph
+if not na(pl)
+    lastSwingLow := pl
+
+// HTF filter: bullish when HTF close > HTF EMA, bearish when below
+htfClose = request.security(syminfo.tickerid, htfTf, close)
+htfEma   = request.security(syminfo.tickerid, htfTf, ta.ema(close, htfMaLen))
+htfBull  = htfClose > htfEma
+htfBear  = htfClose < htfEma
+
+// ----------------------------
+// Structure state
+// trendState:  1 bullish structure, -1 bearish structure, 0 unknown
+// ----------------------------
+var int trendState = 0
+
+bullBos = not na(lastSwingHigh) and ta.crossover(close, lastSwingHigh)
+bearBos = not na(lastSwingLow) and ta.crossunder(close, lastSwingLow)
+
+// CHoCH logic must use previous trend state before updating trend
+prevTrend = trendState
+bearChoch = prevTrend == 1 and bearBos
+bullChoch = prevTrend == -1 and bullBos
+
+if bullBos
+    trendState := 1
+if bearBos
+    trendState := -1
+
+// ----------------------------
+// Flip zones (from CHoCH break level)
+// ----------------------------
+var float bearFlipTop = na
+var float bearFlipBot = na
+var int   bearFlipBar = na
+var bool  bearSignalDone = true
+var box   bearBox = na
+
+var float bullFlipTop = na
+var float bullFlipBot = na
+var int   bullFlipBar = na
+var bool  bullSignalDone = true
+var box   bullBox = na
+
+if bearChoch
+    chochLevel = lastSwingLow
+    bearFlipTop := chochLevel + zonePad
+    bearFlipBot := chochLevel - zonePad
+    bearFlipBar := bar_index
+    bearSignalDone := false
+    if showFlipZones
+        if not na(bearBox)
+            box.delete(bearBox)
+        bearBox := box.new(left=bar_index, top=bearFlipTop, right=bar_index + zoneLifeBars, bottom=bearFlipBot, bgcolor=color.new(color.red, 85), border_color=color.new(color.red, 30))
+
+if bullChoch
+    chochLevel = lastSwingHigh
+    bullFlipTop := chochLevel + zonePad
+    bullFlipBot := chochLevel - zonePad
+    bullFlipBar := bar_index
+    bullSignalDone := false
+    if showFlipZones
+        if not na(bullBox)
+            box.delete(bullBox)
+        bullBox := box.new(left=bar_index, top=bullFlipTop, right=bar_index + zoneLifeBars, bottom=bullFlipBot, bgcolor=color.new(color.lime, 85), border_color=color.new(color.green, 30))
+
+// ----------------------------
+// Retest + confirmation for entries
+// ----------------------------
+bearZoneActive = not na(bearFlipBar) and (bar_index - bearFlipBar <= zoneLifeBars)
+bullZoneActive = not na(bullFlipBar) and (bar_index - bullFlipBar <= zoneLifeBars)
+
+retestBearZone = bearZoneActive and not na(bearFlipTop) and high >= bearFlipBot and low <= bearFlipTop
+retestBullZone = bullZoneActive and not na(bullFlipTop) and high >= bullFlipBot and low <= bullFlipTop
+
+bearConfirm = confirmCandles ? (close < open and close < close[1]) : true
+bullConfirm = confirmCandles ? (close > open and close > close[1]) : true
+
+passBearFilter = useHTFFilter ? htfBear : true
+passBullFilter = useHTFFilter ? htfBull : true
+
+sellSignal = retestBearZone and bearConfirm and not bearSignalDone and passBearFilter
+buySignal  = retestBullZone and bullConfirm and not bullSignalDone and passBullFilter
+
+if sellSignal
+    bearSignalDone := true
+if buySignal
+    bullSignalDone := true
+
+// ----------------------------
+// Plotting
+// ----------------------------
+plotshape(showBosLabels and bullBos, title="Bullish BOS", text="BOS", style=shape.labelup, location=location.belowbar, color=color.new(color.green, 0), textcolor=color.white, size=size.tiny)
+plotshape(showBosLabels and bearBos, title="Bearish BOS", text="BOS", style=shape.labeldown, location=location.abovebar, color=color.new(color.red, 0), textcolor=color.white, size=size.tiny)
+
+plotshape(showChochLabels and bullChoch, title="Bullish CHoCH", text="CHoCH", style=shape.labelup, location=location.belowbar, color=color.new(color.teal, 0), textcolor=color.white, size=size.tiny)
+plotshape(showChochLabels and bearChoch, title="Bearish CHoCH", text="CHoCH", style=shape.labeldown, location=location.abovebar, color=color.new(color.maroon, 0), textcolor=color.white, size=size.tiny)
+
+plotshape(buySignal, title="Flip Zone Buy", text="BUY", style=shape.triangleup, location=location.belowbar, color=color.new(color.lime, 0), textcolor=color.black, size=size.small)
+plotshape(sellSignal, title="Flip Zone Sell", text="SELL", style=shape.triangledown, location=location.abovebar, color=color.new(color.red, 0), textcolor=color.white, size=size.small)
+
+// Optional visual guides
+plot(useHTFFilter ? htfEma : na, title="HTF EMA (projected)", color=color.new(color.orange, 0), linewidth=1)
+
+// ----------------------------
+// Alerts
+// ----------------------------
+alertcondition(buySignal, "SMC Flip Zone BUY", "SMC Flip Zone BUY signal on {{ticker}} {{interval}}")
+alertcondition(sellSignal, "SMC Flip Zone SELL", "SMC Flip Zone SELL signal on {{ticker}} {{interval}}")

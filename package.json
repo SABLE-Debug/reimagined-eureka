@@ -1,0 +1,38 @@
+{
+  "name": "radio-calls",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Private invite-only hybrid trading dashboard",
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "nextjs",
+    "trading-dashboard",
+    "supabase"
+  ],
+  "author": "",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.53.0",
+    "dayjs": "^1.11.13",
+    "next": "16.1.6",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "rss-parser": "^3.13.0",
+    "zod": "^4.1.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.18.0",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "eslint": "^9.34.0",
+    "eslint-config-next": "16.1.6",
+    "tailwindcss": "^4.1.12",
+    "typescript": "^5.9.3"
+  }
+}
