@@ -1,0 +1,14 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Inter:wght@400;500;600&display=swap');
+:root{--bg:#050505;--panel:#101216;--gold:#CDA75A;--iv:#F4F0E8;--soft:#C9C2B5}
+*{box-sizing:border-box}body{margin:0;background:#111;color:var(--iv);font-family:Inter,sans-serif}
+.page{width:210mm;height:297mm;margin:0 auto;position:relative;padding:18mm 16mm;background:radial-gradient(circle at 10% 0%,#151515 0,#050505 60%);border:1px solid #7d5f28;page-break-after:always;display:flex;flex-direction:column;gap:10mm;overflow:hidden}
+.page::before{content:'';position:absolute;inset:8mm;border:1px solid rgba(205,167,90,.35);pointer-events:none}
+.top{display:flex;justify-content:space-between;align-items:center;z-index:2}.logo{width:90mm;height:auto}.seal{width:14mm;opacity:.8}
+h1,h2,h3{font-family:Cinzel,serif;letter-spacing:.05em;margin:0;color:var(--iv)}h1{font-size:18mm;max-width:120mm;line-height:1.07}h2{font-size:10mm;border-bottom:1px solid rgba(205,167,90,.4);padding-bottom:4mm}
+p,li,blockquote{font-size:4.2mm;line-height:1.5;color:var(--soft)}
+.body{display:flex;flex-direction:column;gap:5mm;z-index:2}.grid{display:grid;grid-template-columns:1fr 1fr;gap:5mm}.grid article,.script,.ladder article{background:rgba(16,18,22,.84);border:1px solid rgba(205,167,90,.45);padding:5mm;border-radius:2mm;box-shadow:0 8px 30px rgba(0,0,0,.35)}
+.ladder{display:grid;grid-template-columns:1fr 1fr;gap:5mm}.ladder span{color:var(--gold);font-size:3.2mm}.flow{display:grid;grid-template-columns:1fr 1fr;gap:4mm;counter-reset:item;padding:0}.flow li{list-style:none;border-left:1px solid var(--gold);padding:3mm 3mm 3mm 4mm;background:#0d0f13}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:5mm}.avoid{border-top:1px solid rgba(205,167,90,.4);padding-top:4mm}
+.cover .hero3d{position:absolute;right:10mm;top:42mm;width:90mm;opacity:.3}.hero3d.small{position:static;width:68mm;opacity:.4;align-self:center}
+.cover-content{margin-top:40mm;max-width:125mm;display:flex;flex-direction:column;gap:4mm;z-index:2}.tags{color:var(--gold);font-weight:500;letter-spacing:.08em}footer{margin-top:auto;color:#928B80;letter-spacing:.08em;font-size:3.2mm}
+@page{size:A4 portrait;margin:0}
