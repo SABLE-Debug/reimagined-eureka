@@ -1,0 +1,987 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=5">
+<meta name="theme-color" content="#050404">
+<meta name="format-detection" content="telephone=no, date=no, address=no, email=no">
+<meta name="x-apple-disable-message-reformatting">
+<title>AKHARA — AI Employees, Not Chatbots.</title>
+<meta name="description" content="Nine AI employees. One operator. Five tiers. Live in 14 days.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Italiana&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --gold:#C9A84C;
+  --gold2:#B8964E;
+  --black:#050404;
+  --white:#F2EDE4;
+  --grey:rgba(242,237,228,0.55);
+  --grey2:rgba(242,237,228,0.4);
+  --grey3:rgba(242,237,228,0.25);
+  --gold-dim:rgba(201,168,76,0.12);
+  --gold-line:rgba(184,150,78,0.2);
+  --gold-faint:rgba(201,168,76,0.04);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#050404 !important;color:var(--white);font-family:'DM Mono',monospace;font-weight:400;line-height:1.6;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;overflow-x:hidden}
+html{scroll-behavior:smooth}
+body{min-height:100vh;position:relative}
+img,video,svg{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+
+/* iOS link fix */
+a[href^="tel"], a[href^="sms"], a[href^="mailto"], a[x-apple-data-detectors]{
+  color:inherit !important;text-decoration:none !important;-webkit-text-fill-color:inherit !important;pointer-events:auto;
+}
+
+::selection{background:var(--gold);color:var(--black)}
+
+/* === LOADER === */
+#loader{position:fixed;inset:0;background:var(--black);z-index:10000;display:grid;place-items:center;transition:opacity .9s cubic-bezier(.4,0,.2,1)}
+#loader.out{opacity:0;pointer-events:none}
+#loader svg{width:min(220px,40vw);height:auto;overflow:visible}
+.pillar-line{stroke:var(--gold);fill:none;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1;pathLength:1}
+.pillar-base{animation:draw-base .5s .0s cubic-bezier(.4,0,.2,1) forwards}
+.pillar-c{animation:draw-up .5s .5s cubic-bezier(.4,0,.2,1) forwards}
+.pillar-l{animation:draw-up .5s 1.0s cubic-bezier(.4,0,.2,1) forwards}
+.pillar-r{animation:draw-up .5s 1.0s cubic-bezier(.4,0,.2,1) forwards}
+.pillar-dot{opacity:0;animation:fade-in .3s 1.5s cubic-bezier(.4,0,.2,1) forwards}
+.pillar-halo{stroke:var(--gold);fill:none;opacity:0;stroke-dasharray:1;stroke-dashoffset:1;pathLength:1;animation:draw-halo .6s 1.8s cubic-bezier(.4,0,.2,1) forwards}
+@keyframes draw-base{to{stroke-dashoffset:0}}
+@keyframes draw-up{to{stroke-dashoffset:0}}
+@keyframes fade-in{to{opacity:1}}
+@keyframes draw-halo{to{stroke-dashoffset:0;opacity:.55}}
+.loader-wm{position:absolute;left:50%;bottom:8vh;transform:translateX(-50%);font-family:'DM Mono',monospace;font-size:9px;letter-spacing:6px;color:var(--gold-line);text-transform:uppercase}
+
+/* === GLOBAL OVERLAYS === */
+#grain{position:fixed;inset:0;z-index:9999;pointer-events:none;opacity:.04;mix-blend-mode:overlay}
+#grain canvas{width:100%;height:100%;display:block}
+#progress{position:fixed;top:0;left:0;height:2px;width:0;background:linear-gradient(90deg,var(--gold) 0%,var(--gold2) 100%);z-index:9998;transition:width .1s linear;box-shadow:0 0 8px rgba(201,168,76,.5)}
+#cursor{position:fixed;top:0;left:0;width:6px;height:6px;background:var(--gold);border-radius:50%;pointer-events:none;z-index:9997;transform:translate(-50%,-50%);mix-blend-mode:screen;transition:opacity .3s}
+#cursor-ring{position:fixed;top:0;left:0;width:36px;height:36px;border:1px solid var(--gold-line);border-radius:50%;pointer-events:none;z-index:9996;transform:translate(-50%,-50%);transition:transform .25s cubic-bezier(.4,0,.2,1),opacity .3s,width .25s,height .25s}
+@media (hover:none){#cursor,#cursor-ring{display:none}}
+
+/* === AMBIENT BACKGROUND VIDEO LAYER === */
+.ambient{position:fixed;inset:0;z-index:0;overflow:hidden;background:var(--black)}
+.ambient video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 1.6s cubic-bezier(.4,0,.2,1);will-change:opacity}
+/* Dark scrim sits between ambient bg and content for legibility */
+.ambient::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(5,4,4,.55) 0%,rgba(5,4,4,.85) 60%,rgba(5,4,4,.95) 100%);pointer-events:none}
+body[data-mood="veil"] .ambient .v-veil{opacity:.55}
+body[data-mood="veil"] .ambient .v-arch{opacity:0}
+body[data-mood="arch"] .ambient .v-veil{opacity:0}
+body[data-mood="arch"] .ambient .v-arch{opacity:.65}
+body[data-mood="dark"] .ambient .v-veil{opacity:0}
+body[data-mood="dark"] .ambient .v-arch{opacity:.25}
+
+/* === CONTENT WRAPPER === */
+main{position:relative;z-index:2}
+
+/* === REUSABLE ATOMS === */
+.eyebrow{font-family:'DM Mono',monospace;font-size:8px;font-weight:500;letter-spacing:5px;color:var(--gold);text-transform:uppercase}
+.tag{font-family:'DM Mono',monospace;font-size:9px;font-weight:400;letter-spacing:4px;color:var(--grey);text-transform:uppercase}
+.h-display{font-family:'Italiana',serif;font-weight:400;line-height:1;letter-spacing:-.01em;color:var(--white);font-style:normal !important}
+.gold{color:var(--gold)}
+.muted{color:var(--grey)}
+.rule{height:1px;background:var(--gold-line);width:100%}
+.rule-gold{height:1px;background:var(--gold);width:100%}
+.wmark{position:absolute;font-family:'Italiana',serif;font-size:clamp(80px,18vw,220px);font-weight:400;color:var(--gold-faint);letter-spacing:-3px;pointer-events:none;line-height:1;z-index:0;font-style:normal !important;white-space:nowrap}
+
+/* === SCROLL REVEAL === */
+.r,.r2,.r3{opacity:0;transform:translateY(28px);transition:opacity 1s cubic-bezier(.4,0,.2,1),transform 1s cubic-bezier(.4,0,.2,1)}
+.r2{transition-delay:.15s}
+.r3{transition-delay:.3s}
+.r.in,.r2.in,.r3.in{opacity:1;transform:translateY(0)}
+
+/* === HERO === */
+.hero{position:relative;min-height:100svh;display:grid;place-items:center;padding:24px;overflow:hidden}
+.hero-inner{position:relative;z-index:2;text-align:center;max-width:1100px;width:100%}
+.hero h1{font-family:'Italiana',serif;font-style:normal !important;font-weight:400;color:var(--white);font-size:clamp(56px,16vw,160px);letter-spacing:.02em;line-height:.95}
+.hero-sub{margin-top:28px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:4px;color:var(--grey);text-transform:uppercase}
+.hero-eyebrow{margin-bottom:38px;display:inline-flex;align-items:center;gap:18px}
+.hero-eyebrow .dash{width:36px;height:1px;background:var(--gold)}
+.hero-tagline{margin-top:18px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--gold);text-transform:uppercase}
+.scroll-prompt{position:absolute;left:50%;bottom:32px;transform:translateX(-50%);z-index:3;font-family:'DM Mono',monospace;font-size:8px;letter-spacing:5px;color:var(--grey);text-transform:uppercase;display:flex;flex-direction:column;align-items:center;gap:14px}
+.scroll-prompt .line{width:1px;height:42px;background:linear-gradient(to bottom,var(--gold) 0%,transparent 100%);animation:scroll-line 2.4s ease-in-out infinite}
+@keyframes scroll-line{0%,100%{transform:scaleY(.4);transform-origin:top}50%{transform:scaleY(1);transform-origin:top}}
+
+/* === SECTION === */
+section{position:relative;padding:140px 24px;overflow:hidden}
+section .inner{max-width:1180px;margin:0 auto;position:relative;z-index:2}
+
+/* === THESIS === */
+.thesis{padding:160px 24px}
+.thesis-grid{display:grid;gap:48px;align-items:end;grid-template-columns:1fr}
+.thesis h2{font-family:'Italiana',serif;font-style:normal !important;font-size:clamp(48px,10vw,108px);line-height:1.05;letter-spacing:-.005em}
+.thesis h2 .em{color:var(--gold)}
+.thesis-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:32px;border-top:1px solid var(--gold-line);padding-top:32px}
+.stat .num{font-family:'Italiana',serif;font-style:normal !important;font-size:clamp(40px,7vw,72px);color:var(--white);line-height:1}
+.stat .num .gold{color:var(--gold)}
+.stat .lab{margin-top:8px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:4px;color:var(--grey);text-transform:uppercase}
+@media (min-width:900px){
+  .thesis-grid{grid-template-columns:1.2fr .8fr;gap:80px}
+  .thesis-stats{grid-template-columns:1fr;border-top:0;border-left:1px solid var(--gold-line);padding-top:0;padding-left:48px;gap:40px}
+}
+
+/* === EMPLOYEE SCROLL SECTION === */
+#employees{padding:0;background:transparent}
+.emp-counter{position:fixed;top:24px;left:24px;z-index:50;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:4px;color:var(--gold);text-transform:uppercase;opacity:0;transition:opacity .6s;mix-blend-mode:difference}
+.emp-counter.show{opacity:1}
+.emp-counter .total{color:var(--grey3)}
+
+.emp-panel{position:relative;min-height:100svh;display:grid;align-items:stretch;overflow:hidden;border-top:1px solid var(--gold-line)}
+.emp-panel:first-child{border-top:0}
+.emp-panel .veil{position:absolute;inset:0;background:linear-gradient(180deg,rgba(5,4,4,.4) 0%,rgba(5,4,4,.65) 50%,rgba(5,4,4,.95) 100%);z-index:2;pointer-events:none}
+.emp-panel .transition-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;opacity:0;transition:opacity 1.2s cubic-bezier(.4,0,.2,1)}
+.emp-panel.played .transition-video{opacity:1}
+.emp-panel .avatar-still{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;opacity:0;transition:opacity 1.4s cubic-bezier(.4,0,.2,1) .4s,transform 14s linear}
+.emp-panel.settled .avatar-still{opacity:1;transform:scale(1.08)}
+.emp-panel .content{position:relative;z-index:3;padding:140px 24px 100px;display:grid;grid-template-rows:auto 1fr auto;align-content:end;width:100%;max-width:1180px;margin:0 auto;min-height:100svh}
+.emp-meta{display:flex;align-items:center;gap:22px;margin-bottom:24px}
+.emp-counter-inline{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:5px;color:var(--gold);text-transform:uppercase}
+.emp-meta .dash{width:38px;height:1px;background:var(--gold)}
+.emp-class{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:5px;color:var(--grey);text-transform:uppercase}
+.emp-name{font-family:'Italiana',serif;font-style:normal !important;font-weight:400;font-size:clamp(54px,12vw,140px);line-height:.95;letter-spacing:-.005em;color:var(--white)}
+.emp-price{display:inline-flex;align-items:center;gap:14px;margin-top:18px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:5px;color:var(--gold);text-transform:uppercase}
+.emp-price .v{height:1px;width:24px;background:var(--gold)}
+.emp-desc{margin-top:38px;max-width:640px;font-family:'DM Mono',monospace;font-size:13px;line-height:1.85;letter-spacing:.4px;color:var(--white)}
+.emp-desc p{margin-bottom:8px}
+.emp-desc p.lede{color:var(--gold);font-weight:500}
+.emp-bottom{margin-top:52px;display:grid;gap:22px}
+.emp-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.emp-row-label{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:5px;color:var(--grey3);text-transform:uppercase;width:120px;flex-shrink:0}
+.chip{display:inline-flex;align-items:center;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--white);text-transform:uppercase;padding:6px 12px;border:1px solid var(--gold-line);background:rgba(5,4,4,.4);backdrop-filter:blur(2px)}
+.chip.gold{color:var(--gold);border-color:var(--gold)}
+.gold-sweep{position:absolute;left:0;right:0;top:0;height:1px;background:linear-gradient(90deg,transparent 0%,var(--gold) 50%,transparent 100%);transform:translateY(0);opacity:0;z-index:5}
+.emp-panel.played .gold-sweep{animation:sweep 1.4s cubic-bezier(.4,0,.2,1) forwards}
+@keyframes sweep{0%{opacity:0;transform:translateY(0)}10%{opacity:1}90%{opacity:1}100%{opacity:0;transform:translateY(100vh)}}
+
+/* === DIVIDER === */
+.div-rule{display:flex;align-items:center;gap:24px;color:var(--gold-line);font-family:'DM Mono',monospace;font-size:8px;letter-spacing:6px;text-transform:uppercase}
+.div-rule::before,.div-rule::after{content:"";flex:1;height:1px;background:var(--gold-line)}
+.div-rule .text{color:var(--grey3)}
+
+/* === PRICING === */
+#pricing{padding:160px 24px 140px}
+.pricing-head{text-align:center;margin-bottom:80px}
+.pricing-head h2{font-family:'Italiana',serif;font-style:normal !important;font-weight:400;font-size:clamp(48px,9vw,96px);line-height:1.05}
+.pricing-head .sub{margin-top:18px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:4px;color:var(--grey);text-transform:uppercase}
+.tiers{display:grid;grid-template-columns:1fr;gap:1px;background:var(--gold-line);border:1px solid var(--gold-line)}
+.tier{position:relative;background:rgba(5,4,4,.85);padding:36px 28px;display:flex;flex-direction:column;gap:18px}
+.tier-name{font-family:'Italiana',serif;font-style:normal !important;font-weight:400;font-size:clamp(28px,5vw,40px);line-height:1;letter-spacing:.005em}
+.tier-num{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:5px;color:var(--gold);text-transform:uppercase}
+.tier-price{font-family:'Italiana',serif;font-style:normal !important;font-weight:400;font-size:clamp(32px,5vw,42px);line-height:1;color:var(--gold);margin-top:2px}
+.tier-price .per{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:4px;color:var(--grey);margin-left:6px;text-transform:uppercase}
+.tier-meta{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1.5px;line-height:1.6;color:var(--white);padding-top:14px;border-top:1px solid var(--gold-line)}
+.tier-meta dt{color:var(--grey)}
+.tier-meta dd{color:var(--white)}
+.tier-includes{margin-top:18px;padding-top:18px;border-top:1px solid var(--gold-line);font-family:'DM Mono',monospace;font-size:10px;line-height:1.7;color:var(--grey)}
+.tier-includes strong{color:var(--white);font-weight:500}
+.tier.flagship{background:rgba(201,168,76,.04);border:1px solid var(--gold)}
+.tier.flagship .tier-name{color:var(--gold)}
+.tier-flag{position:absolute;top:0;left:0;right:0;height:2px;background:var(--gold);transform-origin:left;transform:scaleX(0);transition:transform 1s cubic-bezier(.4,0,.2,1)}
+.tier.in .tier-flag{transform:scaleX(1)}
+@media (min-width:900px){.tiers{grid-template-columns:repeat(5,1fr)}.tier{padding:44px 24px}}
+
+/* === METHODOLOGY === */
+.method{padding:140px 24px}
+.method h2{font-family:'Italiana',serif;font-style:normal !important;font-weight:400;font-size:clamp(40px,7vw,72px);line-height:1.05;margin-bottom:60px;text-align:center}
+.method-grid{display:grid;grid-template-columns:1fr;gap:0;border-top:1px solid var(--gold-line)}
+.method-item{display:grid;grid-template-columns:auto 1fr;gap:24px;padding:32px 0;border-bottom:1px solid var(--gold-line);align-items:start}
+.method-num{font-family:'Italiana',serif;font-style:normal !important;font-weight:400;font-size:clamp(36px,5vw,52px);color:var(--gold);line-height:1;min-width:80px}
+.method-body h3{font-family:'Italiana',serif;font-style:normal !important;font-weight:400;font-size:clamp(22px,3vw,28px);line-height:1.2;margin-bottom:8px}
+.method-body p{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.6px;line-height:1.85;color:var(--grey)}
+@media (min-width:900px){.method-grid{grid-template-columns:repeat(2,1fr);gap:0 60px}}
+
+/* === CTA === */
+#cta{padding:200px 24px 180px;text-align:center;position:relative}
+#cta .inner{max-width:900px}
+#cta h2{font-family:'Italiana',serif;font-style:normal !important;font-weight:400;font-size:clamp(48px,10vw,120px);line-height:1.02;letter-spacing:-.005em}
+#cta .sub{margin-top:24px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:5px;color:var(--gold);text-transform:uppercase}
+.cta-button{display:inline-flex;align-items:center;gap:18px;margin-top:56px;padding:22px 36px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:6px;color:var(--gold);text-transform:uppercase;border:1px solid var(--gold);background:rgba(5,4,4,.6);backdrop-filter:blur(4px);transition:all .4s cubic-bezier(.4,0,.2,1)}
+.cta-button:hover{background:var(--gold);color:var(--black);transform:translateY(-2px)}
+.cta-button .arrow{transition:transform .4s cubic-bezier(.4,0,.2,1)}
+.cta-button:hover .arrow{transform:translateX(8px)}
+.cta-secondary{display:block;margin-top:32px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--grey);text-transform:uppercase}
+.cta-secondary a{color:var(--white);border-bottom:1px solid var(--gold-line);padding-bottom:2px;transition:border-color .3s}
+.cta-secondary a:hover{border-color:var(--gold)}
+
+/* === FOOTER === */
+footer{position:relative;padding:80px 24px 40px;border-top:1px solid var(--gold-line);background:rgba(5,4,4,.95);z-index:3}
+.foot-grid{max-width:1180px;margin:0 auto;display:grid;grid-template-columns:1fr;gap:48px;align-items:start}
+.foot-mark{display:flex;align-items:center;gap:16px}
+.foot-mark svg{width:32px;height:auto}
+.foot-mark .word{font-family:'Italiana',serif;font-style:normal !important;font-size:24px;letter-spacing:.06em;color:var(--white)}
+.foot-meta{display:grid;grid-template-columns:1fr 1fr;gap:18px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--grey);text-transform:uppercase}
+.foot-meta a{color:var(--white);border-bottom:1px solid var(--gold-line);padding-bottom:1px}
+.foot-base{margin-top:60px;padding-top:24px;border-top:1px solid var(--gold-line);max-width:1180px;margin-left:auto;margin-right:auto;display:flex;flex-wrap:wrap;justify-content:space-between;gap:14px;font-family:'DM Mono',monospace;font-size:8px;letter-spacing:4px;color:var(--grey3);text-transform:uppercase}
+@media (min-width:900px){
+  .foot-grid{grid-template-columns:auto 1fr auto;gap:80px}
+  .foot-meta{grid-template-columns:repeat(3,auto);justify-content:end}
+}
+
+/* === REDUCED MOTION === */
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
+  .ambient video{display:none}
+  .emp-panel .transition-video{display:none}
+  .emp-panel .avatar-still{opacity:1 !important;transform:none !important}
+}
+</style>
+</head>
+<body>
+
+<!-- ============== LOADER ============== -->
+<div id="loader" aria-hidden="true">
+  <svg viewBox="0 0 512 560" xmlns="http://www.w3.org/2000/svg">
+    <line class="pillar-line pillar-base" x1="80" y1="460" x2="432" y2="460" stroke-width="2"/>
+    <line class="pillar-line pillar-c"    x1="256" y1="460" x2="256" y2="120" stroke-width="3"/>
+    <line class="pillar-line pillar-l"    x1="192" y1="460" x2="192" y2="180" stroke-width="2.5"/>
+    <line class="pillar-line pillar-r"    x1="320" y1="460" x2="320" y2="180" stroke-width="2.5"/>
+    <circle class="pillar-dot" cx="256" cy="90" r="7" fill="#C9A84C"/>
+    <circle class="pillar-halo" cx="256" cy="90" r="22" stroke-width="1"/>
+  </svg>
+  <div class="loader-wm">AKHARA · ARENA · TRAINING GROUND</div>
+</div>
+
+<!-- ============== AMBIENT BACKGROUND VIDEOS (always looping) ============== -->
+<div class="ambient" aria-hidden="true">
+  <video class="v-veil" src="assets/backgrounds/glass-veil.mp4" poster="assets/posters/bg-glass-veil.jpg" autoplay muted loop playsinline preload="auto"></video>
+  <video class="v-arch" src="assets/backgrounds/black-architecture.mp4" poster="assets/posters/bg-black-architecture.jpg" autoplay muted loop playsinline preload="auto"></video>
+</div>
+
+<!-- ============== GLOBAL OVERLAYS ============== -->
+<div id="grain" aria-hidden="true"><canvas id="gc"></canvas></div>
+<div id="progress" aria-hidden="true"></div>
+<div id="cursor" aria-hidden="true"></div>
+<div id="cursor-ring" aria-hidden="true"></div>
+
+<!-- ============== EMPLOYEE COUNTER (fixed during employee section) ============== -->
+<div class="emp-counter" id="empCounter" aria-hidden="true">
+  <span id="empCounterNum">00</span><span class="total"> / 09</span>
+</div>
+
+<main>
+
+<!-- ============== HERO ============== -->
+<section class="hero" id="hero">
+  <div class="wmark" style="left:-2vw;bottom:-2vw">ARENA</div>
+  <div class="hero-inner">
+    <div class="hero-eyebrow r">
+      <span class="dash"></span>
+      <span class="eyebrow">The Playbook · 2026</span>
+      <span class="dash"></span>
+    </div>
+    <h1 class="r2">AKHARA</h1>
+    <div class="hero-tagline r3">AI Employees · Not Chatbots</div>
+    <div class="hero-sub r3" style="margin-top:42px">Nine employees. One operator. Live in 14 days.</div>
+  </div>
+  <div class="scroll-prompt" aria-hidden="true">
+    <span>Enter</span>
+    <span class="line"></span>
+  </div>
+</section>
+
+<!-- ============== THESIS ============== -->
+<section class="thesis" id="thesis">
+  <div class="wmark" style="left:-3vw;top:-4vw">THESIS</div>
+  <div class="inner">
+    <div class="thesis-grid">
+      <div>
+        <div class="eyebrow r" style="margin-bottom:36px">01 — The Thesis</div>
+        <h2 class="r2">AI <span class="em">employees</span>, not chatbots. <br>60-second response, every inbound, 24/7. <br>9 employees. 1 operator. <span class="em">5 tiers</span>. <br>Live in <span class="em">14 days</span>.</h2>
+      </div>
+      <div class="thesis-stats">
+        <div class="stat r3">
+          <div class="num"><span class="gold">9</span> / 09</div>
+          <div class="lab">AI Employees Total</div>
+        </div>
+        <div class="stat r3">
+          <div class="num"><span class="gold">14</span> Days</div>
+          <div class="lab">From Contract to Live</div>
+        </div>
+        <div class="stat r3">
+          <div class="num"><span class="gold">60</span>s</div>
+          <div class="lab">Response, Every Inbound</div>
+        </div>
+        <div class="stat r3">
+          <div class="num"><span class="gold">$50K</span> MRR</div>
+          <div class="lab">Target — 12 Months</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== DIVIDER ============== -->
+<div class="inner" style="max-width:1180px;margin:0 auto;padding:0 24px">
+  <div class="div-rule"><span class="text">The Roster · 09 Employees</span></div>
+</div>
+
+<!-- ============== THE 9 EMPLOYEES ============== -->
+<section id="employees" data-emp-section>
+
+  <!-- 01 FOUNDATION -->
+  <article class="emp-panel" data-emp-index="1" data-mood-target="veil">
+    <span class="gold-sweep"></span>
+    <img class="avatar-still" src="assets/avatars/01-foundation.jpg" alt="The Foundation — figure in matte black two-piece suit, brutalist concrete corridor.">
+    <div class="veil"></div>
+    <div class="content">
+      <div class="emp-meta">
+        <span class="emp-counter-inline">01 / 09</span>
+        <span class="dash"></span>
+        <span class="emp-class">Tier · Entry</span>
+      </div>
+      <h2 class="emp-name">The Foundation</h2>
+      <div class="emp-price"><span>$1,500 / mo</span><span class="v"></span><span>$1,500 setup</span><span class="v"></span><span>3-Mo Min</span></div>
+      <div class="emp-desc">
+        <p class="lede">One AI employee. One function. Multi-channel.</p>
+        <p>14-day deployment. 3-month minimum. The entry to the system.</p>
+        <p class="muted">Replaces one bottleneck that's bleeding your time.</p>
+      </div>
+      <div class="emp-bottom">
+        <div class="emp-row">
+          <span class="emp-row-label">Connectors</span>
+          <span class="chip">Gmail</span><span class="chip">Notion</span><span class="chip">Calendly</span><span class="chip gold">+1 Channel</span>
+        </div>
+        <div class="emp-row">
+          <span class="emp-row-label">Replaces</span>
+          <span class="chip">1 Hire</span><span class="chip">One Bottleneck</span>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <!-- 02 OPERATOR (TIER) -->
+  <article class="emp-panel" data-emp-index="2" data-mood-target="veil" data-transition="assets/transitions/02-operator-tier.mp4">
+    <span class="gold-sweep"></span>
+    <video class="transition-video" src="assets/transitions/02-operator-tier.mp4" poster="assets/posters/tr-02-operator-tier.jpg" muted playsinline preload="metadata"></video>
+    <img class="avatar-still" src="assets/avatars/02-operator-tier.jpg" alt="The Operator tier — three-piece suit with gold watch chain, brutalist concrete corridor.">
+    <div class="veil"></div>
+    <div class="content">
+      <div class="emp-meta">
+        <span class="emp-counter-inline">02 / 09</span>
+        <span class="dash"></span>
+        <span class="emp-class">Tier · The First System</span>
+      </div>
+      <h2 class="emp-name">The Operator</h2>
+      <div class="emp-price"><span>$5,000 / mo</span><span class="v"></span><span>$2,500 setup</span><span class="v"></span><span>3-Mo Min</span></div>
+      <div class="emp-desc">
+        <p class="lede">One AI employee. Deeper integration. Full handoff.</p>
+        <p>Replaces 1–2 hires. 14-day deployment.</p>
+        <p class="muted">The first tier where the system runs itself.</p>
+      </div>
+      <div class="emp-bottom">
+        <div class="emp-row">
+          <span class="emp-row-label">Connectors</span>
+          <span class="chip">Gmail</span><span class="chip">Slack</span><span class="chip">Notion</span><span class="chip">HubSpot</span><span class="chip gold">+3 Channels</span>
+        </div>
+        <div class="emp-row">
+          <span class="emp-row-label">Replaces</span>
+          <span class="chip">1–2 Hires</span><span class="chip">Daily Inbox Triage</span>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <!-- 03 EXECUTIVE -->
+  <article class="emp-panel" data-emp-index="3" data-mood-target="veil" data-transition="assets/transitions/03-executive.mp4">
+    <span class="gold-sweep"></span>
+    <video class="transition-video" src="assets/transitions/03-executive.mp4" poster="assets/posters/tr-03-executive.jpg" muted playsinline preload="metadata"></video>
+    <img class="avatar-still" src="assets/avatars/03-executive.jpg" alt="The Executive — peak-lapel suit under a vertical column of warm overhead light.">
+    <div class="veil"></div>
+    <div class="content">
+      <div class="emp-meta">
+        <span class="emp-counter-inline">03 / 09</span>
+        <span class="dash"></span>
+        <span class="emp-class">Tier · Flagship</span>
+      </div>
+      <h2 class="emp-name">The Executive</h2>
+      <div class="emp-price"><span>$10,000 / mo</span><span class="v"></span><span>$5,000 setup</span><span class="v"></span><span>6-Mo Min</span></div>
+      <div class="emp-desc">
+        <p class="lede">Two AI employees. Fully integrated. Internal + external.</p>
+        <p>Replaces 3–5 hires. 14-day deployment.</p>
+        <p class="muted">The flagship. Where most clients live.</p>
+      </div>
+      <div class="emp-bottom">
+        <div class="emp-row">
+          <span class="emp-row-label">Connectors</span>
+          <span class="chip">Gmail</span><span class="chip">Slack</span><span class="chip">Notion</span><span class="chip">HubSpot</span><span class="chip">Calendly</span><span class="chip">Drive</span><span class="chip">Buffer</span><span class="chip gold">+ Custom</span>
+        </div>
+        <div class="emp-row">
+          <span class="emp-row-label">Replaces</span>
+          <span class="chip">3–5 Hires</span><span class="chip">Front-of-House Ops</span>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <!-- 04 DEPARTMENT -->
+  <article class="emp-panel" data-emp-index="4" data-mood-target="veil" data-transition="assets/transitions/04-department.mp4">
+    <span class="gold-sweep"></span>
+    <video class="transition-video" src="assets/transitions/04-department.mp4" poster="assets/posters/tr-04-department.jpg" muted playsinline preload="metadata"></video>
+    <img class="avatar-still" src="assets/avatars/04-department.jpg" alt="The Department — long wool overcoat in a monumental concrete hall lit by a tall narrow window.">
+    <div class="veil"></div>
+    <div class="content">
+      <div class="emp-meta">
+        <span class="emp-counter-inline">04 / 09</span>
+        <span class="dash"></span>
+        <span class="emp-class">Tier · The Apex</span>
+      </div>
+      <h2 class="emp-name">The Department</h2>
+      <div class="emp-price"><span>$20,000 / mo</span><span class="v"></span><span>$10,000 setup</span><span class="v"></span><span>6-Mo Min</span></div>
+      <div class="emp-desc">
+        <p class="lede">Three AI employees. Full ops layer.</p>
+        <p>Replaces 5–10 hires. 14-day deployment.</p>
+        <p class="muted">The system that runs while you sleep.</p>
+      </div>
+      <div class="emp-bottom">
+        <div class="emp-row">
+          <span class="emp-row-label">Connectors</span>
+          <span class="chip gold">Full Stack Integration</span><span class="chip">Custom Workflows</span><span class="chip">Dedicated Infra</span>
+        </div>
+        <div class="emp-row">
+          <span class="emp-row-label">Replaces</span>
+          <span class="chip">5–10 Hires</span><span class="chip">Entire Ops Team</span>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <!-- 05 SOVEREIGN -->
+  <article class="emp-panel" data-emp-index="5" data-mood-target="veil" data-transition="assets/transitions/05-sovereign.mp4">
+    <span class="gold-sweep"></span>
+    <video class="transition-video" src="assets/transitions/05-sovereign.mp4" poster="assets/posters/tr-05-sovereign.jpg" muted playsinline preload="metadata"></video>
+    <img class="avatar-still" src="assets/avatars/05-sovereign.jpg" alt="The Sovereign — high-collar coat at the top of a wide bone-white staircase under a circular skylight.">
+    <div class="veil"></div>
+    <div class="content">
+      <div class="emp-meta">
+        <span class="emp-counter-inline">05 / 09</span>
+        <span class="dash"></span>
+        <span class="emp-class">Tier · The Ceiling</span>
+      </div>
+      <h2 class="emp-name">The Sovereign</h2>
+      <div class="emp-price"><span>$50,000 setup</span><span class="v"></span><span>$10,000 / mo</span><span class="v"></span><span>12-Mo Min</span></div>
+      <div class="emp-desc">
+        <p class="lede">Custom build. Four AI employees. White-glove deployment.</p>
+        <p>Replaces 10–15 hires. 14-day deployment.</p>
+        <p class="muted">The ceiling. Built once. Runs forever.</p>
+      </div>
+      <div class="emp-bottom">
+        <div class="emp-row">
+          <span class="emp-row-label">Connectors</span>
+          <span class="chip gold">Anything With An API</span><span class="chip">Anything Without — Built</span>
+        </div>
+        <div class="emp-row">
+          <span class="emp-row-label">Replaces</span>
+          <span class="chip">10–15 Hires</span><span class="chip">A Department, Permanently</span>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <!-- 06 CLOSER -->
+  <article class="emp-panel" data-emp-index="6" data-mood-target="veil" data-transition="assets/transitions/06-closer.mp4">
+    <span class="gold-sweep"></span>
+    <video class="transition-video" src="assets/transitions/06-closer.mp4" poster="assets/posters/tr-06-closer.jpg" muted playsinline preload="metadata"></video>
+    <img class="avatar-still" src="assets/avatars/06-closer.jpg" alt="The Closer — mid-handshake with a disembodied counterparty hand entering from the right.">
+    <div class="veil"></div>
+    <div class="content">
+      <div class="emp-meta">
+        <span class="emp-counter-inline">06 / 09</span>
+        <span class="dash"></span>
+        <span class="emp-class">Role · Sales</span>
+      </div>
+      <h2 class="emp-name">The Closer</h2>
+      <div class="emp-price"><span>Sales</span><span class="v"></span><span>Deployed Inside Operator+</span></div>
+      <div class="emp-desc">
+        <p class="lede">60-second response to every inbound. BANT qualification. Books the call.</p>
+        <p>Never sleeps. Never misses a lead.</p>
+        <p class="muted">The deal abstracted — closes before competitors reply.</p>
+      </div>
+      <div class="emp-bottom">
+        <div class="emp-row">
+          <span class="emp-row-label">Connects To</span>
+          <span class="chip">Gmail</span><span class="chip">HubSpot</span><span class="chip">Calendly</span><span class="chip">IG DMs</span><span class="chip">LinkedIn DMs</span><span class="chip">X DMs</span>
+        </div>
+        <div class="emp-row">
+          <span class="emp-row-label">Outputs</span>
+          <span class="chip gold">Booked Calls</span><span class="chip">Qualified Pipeline</span>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <!-- 07 OPERATOR (ROLE) -->
+  <article class="emp-panel" data-emp-index="7" data-mood-target="veil" data-transition="assets/transitions/07-operator-role.mp4">
+    <span class="gold-sweep"></span>
+    <video class="transition-video" src="assets/transitions/07-operator-role.mp4" poster="assets/posters/tr-07-operator-role.jpg" muted playsinline preload="metadata"></video>
+    <img class="avatar-still" src="assets/avatars/07-operator-role.jpg" alt="The Operator role — black waistcoat over rolled white shirt sleeves, seated at a long bone-white marble console.">
+    <div class="veil"></div>
+    <div class="content">
+      <div class="emp-meta">
+        <span class="emp-counter-inline">07 / 09</span>
+        <span class="dash"></span>
+        <span class="emp-class">Role · Support</span>
+      </div>
+      <h2 class="emp-name">The Operator</h2>
+      <div class="emp-price"><span>Support</span><span class="v"></span><span>Deployed Inside Operator+</span></div>
+      <div class="emp-desc">
+        <p class="lede">Resolves 80% of inbound questions. Escalates the rest.</p>
+        <p>Pulls from your knowledge base. Learns your voice in 7 days.</p>
+        <p class="muted">Monastic. Available. The work itself.</p>
+      </div>
+      <div class="emp-bottom">
+        <div class="emp-row">
+          <span class="emp-row-label">Connects To</span>
+          <span class="chip">Gmail</span><span class="chip">Slack</span><span class="chip">Notion</span><span class="chip">IG DMs</span><span class="chip">LinkedIn DMs</span>
+        </div>
+        <div class="emp-row">
+          <span class="emp-row-label">Outputs</span>
+          <span class="chip gold">80% Auto-Resolved</span><span class="chip">Smart Escalation</span>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <!-- 08 ARCHITECT -->
+  <article class="emp-panel" data-emp-index="8" data-mood-target="veil" data-transition="assets/transitions/08-architect.mp4">
+    <span class="gold-sweep"></span>
+    <video class="transition-video" src="assets/transitions/08-architect.mp4" poster="assets/posters/tr-08-architect.jpg" muted playsinline preload="metadata"></video>
+    <img class="avatar-still" src="assets/avatars/08-architect.jpg" alt="The Architect — black waistcoat leaning over a bone-white drafting table, gold pen behind ear, blueprints in gold ink.">
+    <div class="veil"></div>
+    <div class="content">
+      <div class="emp-meta">
+        <span class="emp-counter-inline">08 / 09</span>
+        <span class="dash"></span>
+        <span class="emp-class">Role · Ops</span>
+      </div>
+      <h2 class="emp-name">The Architect</h2>
+      <div class="emp-price"><span>Ops</span><span class="v"></span><span>Deployed Inside Executive+</span></div>
+      <div class="emp-desc">
+        <p class="lede">New client triggers a 9-step deployment in 60 seconds.</p>
+        <p>Spins up workspaces. Sends contracts. Routes payments.</p>
+        <p class="muted">Designs the system. Then runs it.</p>
+      </div>
+      <div class="emp-bottom">
+        <div class="emp-row">
+          <span class="emp-row-label">Connects To</span>
+          <span class="chip">Make.com</span><span class="chip">Notion</span><span class="chip">Slack</span><span class="chip">PandaDoc</span><span class="chip">Wise</span><span class="chip">HubSpot</span><span class="chip">Drive</span>
+        </div>
+        <div class="emp-row">
+          <span class="emp-row-label">Outputs</span>
+          <span class="chip gold">9-Step Onboarding</span><span class="chip">60-Second Deploy</span>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <!-- 09 STRATEGIST -->
+  <article class="emp-panel" data-emp-index="9" data-mood-target="veil" data-transition="assets/transitions/09-strategist.mp4">
+    <span class="gold-sweep"></span>
+    <video class="transition-video" src="assets/transitions/09-strategist.mp4" poster="assets/posters/tr-09-strategist.jpg" muted playsinline preload="metadata"></video>
+    <img class="avatar-still" src="assets/avatars/09-strategist.jpg" alt="The Strategist — long wool overcoat, back to camera, surveying a void-black city through a floor-to-ceiling window.">
+    <div class="veil"></div>
+    <div class="content">
+      <div class="emp-meta">
+        <span class="emp-counter-inline">09 / 09</span>
+        <span class="dash"></span>
+        <span class="emp-class">Role · Marketing</span>
+      </div>
+      <h2 class="emp-name">The Strategist</h2>
+      <div class="emp-price"><span>Marketing</span><span class="v"></span><span>Deployed Inside Executive+</span></div>
+      <div class="emp-desc">
+        <p class="lede">Records one Loom. Ships 5 days of content across 3 channels.</p>
+        <p>Holds your voice. Studies what works. Doubles down.</p>
+        <p class="muted">Reads the field. Moves the gold accents into the environment.</p>
+      </div>
+      <div class="emp-bottom">
+        <div class="emp-row">
+          <span class="emp-row-label">Connects To</span>
+          <span class="chip">Buffer</span><span class="chip">Notion</span><span class="chip">X</span><span class="chip">LinkedIn</span><span class="chip">Instagram</span><span class="chip">Loom</span>
+        </div>
+        <div class="emp-row">
+          <span class="emp-row-label">Outputs</span>
+          <span class="chip gold">5 Days of Content / 1 Loom</span><span class="chip">3-Channel Distribution</span>
+        </div>
+      </div>
+    </div>
+  </article>
+
+</section>
+
+<!-- ============== DIVIDER ============== -->
+<div class="inner" style="max-width:1180px;margin:0 auto;padding:80px 24px 0">
+  <div class="div-rule"><span class="text">The Architecture · 05 Tiers</span></div>
+</div>
+
+<!-- ============== PRICING ============== -->
+<section id="pricing" data-mood-target="arch">
+  <div class="wmark" style="left:-2vw;top:-2vw">PRICE</div>
+  <div class="inner">
+    <div class="pricing-head">
+      <div class="eyebrow r">02 — The Architecture</div>
+      <h2 class="r2" style="margin-top:18px">Five Tiers. <span style="color:var(--gold)">No Custom Pricing.</span></h2>
+      <div class="sub r3">Below $1,500 we don't quote. Annual pre-pay = 10% off. The only allowed discount.</div>
+    </div>
+    <div class="tiers">
+      <div class="tier r">
+        <span class="tier-flag"></span>
+        <div class="tier-num">01 — Foundation</div>
+        <div class="tier-name">Foundation</div>
+        <div class="tier-price">$1,500<span class="per">/ mo</span></div>
+        <dl class="tier-meta">
+          <dt>Setup</dt><dd>$1,500</dd>
+          <dt>Min Term</dt><dd>3 Months</dd>
+          <dt>Terms</dt><dd>Net-7</dd>
+        </dl>
+        <div class="tier-includes"><strong>Includes:</strong> 1 AI employee. Multi-channel. Replaces one bottleneck.</div>
+      </div>
+      <div class="tier r">
+        <span class="tier-flag"></span>
+        <div class="tier-num">02 — Operator</div>
+        <div class="tier-name">Operator</div>
+        <div class="tier-price">$5,000<span class="per">/ mo</span></div>
+        <dl class="tier-meta">
+          <dt>Setup</dt><dd>$2,500</dd>
+          <dt>Min Term</dt><dd>3 Months</dd>
+          <dt>Terms</dt><dd>Net-7</dd>
+        </dl>
+        <div class="tier-includes"><strong>Includes:</strong> 1 AI employee, deeper integration. Replaces 1–2 hires.</div>
+      </div>
+      <div class="tier flagship r">
+        <span class="tier-flag"></span>
+        <div class="tier-num">03 — Executive · Flagship</div>
+        <div class="tier-name">Executive</div>
+        <div class="tier-price">$10,000<span class="per">/ mo</span></div>
+        <dl class="tier-meta">
+          <dt>Setup</dt><dd>$5,000</dd>
+          <dt>Min Term</dt><dd>6 Months</dd>
+          <dt>Terms</dt><dd>Net-7</dd>
+        </dl>
+        <div class="tier-includes"><strong>Includes:</strong> 2 AI employees. Internal + external. Replaces 3–5 hires.</div>
+      </div>
+      <div class="tier r">
+        <span class="tier-flag"></span>
+        <div class="tier-num">04 — Department</div>
+        <div class="tier-name">Department</div>
+        <div class="tier-price">$20,000<span class="per">/ mo</span></div>
+        <dl class="tier-meta">
+          <dt>Setup</dt><dd>$10,000</dd>
+          <dt>Min Term</dt><dd>6 Months</dd>
+          <dt>Terms</dt><dd>Net-7</dd>
+        </dl>
+        <div class="tier-includes"><strong>Includes:</strong> 3 AI employees. Full ops layer. Replaces 5–10 hires.</div>
+      </div>
+      <div class="tier r">
+        <span class="tier-flag"></span>
+        <div class="tier-num">05 — Sovereign</div>
+        <div class="tier-name">Sovereign</div>
+        <div class="tier-price">$50,000<span class="per">setup</span></div>
+        <dl class="tier-meta">
+          <dt>Retainer</dt><dd>$10,000 / mo</dd>
+          <dt>Min Term</dt><dd>12 Months</dd>
+          <dt>Terms</dt><dd>Net-0 setup · Net-7</dd>
+        </dl>
+        <div class="tier-includes"><strong>Includes:</strong> Custom build. 4 AI employees. Replaces 10–15 hires.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== METHOD ============== -->
+<section class="method" id="method" data-mood-target="arch">
+  <div class="wmark" style="right:-2vw;top:-2vw">SYSTEM</div>
+  <div class="inner">
+    <div class="eyebrow r" style="text-align:center;margin-bottom:20px">03 — Deployment</div>
+    <h2 class="r2">From contract to live in <span style="color:var(--gold)">14 days</span>.</h2>
+    <div class="method-grid">
+      <div class="method-item r">
+        <div class="method-num">01</div>
+        <div class="method-body">
+          <h3>Discovery — 60 Seconds</h3>
+          <p>One Loom. We respond same day. No call required.</p>
+        </div>
+      </div>
+      <div class="method-item r2">
+        <div class="method-num">02</div>
+        <div class="method-body">
+          <h3>Setup Fee — 50% Upfront</h3>
+          <p>Contract signed. Setup paid. Build begins. Sovereign tier is fully Net-0 upfront.</p>
+        </div>
+      </div>
+      <div class="method-item r">
+        <div class="method-num">03</div>
+        <div class="method-body">
+          <h3>Architect Deploys — Day 1–7</h3>
+          <p>Workspaces spun. Connectors wired. Voice trained on your knowledge base.</p>
+        </div>
+      </div>
+      <div class="method-item r2">
+        <div class="method-num">04</div>
+        <div class="method-body">
+          <h3>Manual Mode — 7 Days</h3>
+          <p>Every output approved. The bar is calibrated to your judgment, not ours.</p>
+        </div>
+      </div>
+      <div class="method-item r">
+        <div class="method-num">05</div>
+        <div class="method-body">
+          <h3>Semi-Auto — Day 8–14</h3>
+          <p>System runs. You spot-check. Confidence stacks.</p>
+        </div>
+      </div>
+      <div class="method-item r2">
+        <div class="method-num">06</div>
+        <div class="method-body">
+          <h3>Full Auto — Quarterly Reviews</h3>
+          <p>System operates. We meet every quarter. Tiers adjust with the data.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== CTA ============== -->
+<section id="cta" data-mood-target="veil">
+  <div class="wmark" style="left:50%;top:0;transform:translateX(-50%)">ENTER</div>
+  <div class="inner">
+    <div class="eyebrow r" style="margin-bottom:32px">04 — The Door</div>
+    <h2 class="r2">Book the demo. <br><span style="color:var(--gold)">60 seconds.</span></h2>
+    <a class="cta-button r3" href="https://calendly.com/helloakhara/demo" target="_blank" rel="noopener">
+      <span>Book the Demo</span>
+      <span class="arrow">→</span>
+    </a>
+    <div class="cta-secondary r3">Or reply to a Loom — <a href="mailto:helloakhara@gmail.com">same-day response</a>.</div>
+  </div>
+</section>
+
+</main>
+
+<!-- ============== FOOTER ============== -->
+<footer data-mood-target="dark">
+  <div class="foot-grid">
+    <div class="foot-mark">
+      <svg viewBox="0 0 512 560" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <line x1="80"  y1="460" x2="432" y2="460" stroke="#C9A84C" stroke-width="4" stroke-linecap="round"/>
+        <line x1="256" y1="460" x2="256" y2="120" stroke="#C9A84C" stroke-width="6" stroke-linecap="round"/>
+        <line x1="192" y1="460" x2="192" y2="180" stroke="#C9A84C" stroke-width="5" stroke-linecap="round"/>
+        <line x1="320" y1="460" x2="320" y2="180" stroke="#C9A84C" stroke-width="5" stroke-linecap="round"/>
+        <circle cx="256" cy="90" r="12" fill="#C9A84C"/>
+        <circle cx="256" cy="90" r="36" stroke="#C9A84C" stroke-width="2" fill="none" opacity=".55"/>
+      </svg>
+      <span class="word">AKHARA</span>
+    </div>
+    <div class="foot-meta">
+      <div>Contact<br><a href="mailto:helloakhara@gmail.com">helloakhara@gmail.com</a></div>
+      <div>Schedule<br><a href="https://calendly.com/helloakhara/demo">Calendly · 60-Sec Demo</a></div>
+      <div>Status<br><span style="color:var(--gold)">Phase D — Client Assets</span></div>
+    </div>
+  </div>
+  <div class="foot-base">
+    <span>© 2026 AKHARA · Arena. Training Ground.</span>
+    <span>Brutalist Luxury · Italiana + DM Mono · Meridian Gold #C9A84C</span>
+    <span>Built once. Runs forever.</span>
+  </div>
+</footer>
+
+<script>
+(function(){
+  'use strict';
+
+  // ====== LOADER SAFETY NET (4500ms hard cap per spec) ======
+  var loader = document.getElementById('loader');
+  var observersStarted = false;
+  function hideLoader(){
+    if(!loader || loader.classList.contains('out')) return;
+    loader.classList.add('out');
+    setTimeout(function(){
+      if(loader && loader.parentNode) loader.parentNode.removeChild(loader);
+    }, 1100);
+    setTimeout(startObservers, 120);
+  }
+  // Loader animation completes around 2.4–2.8s; fade at 2.9s
+  setTimeout(hideLoader, 2900);
+  // Hard safety net at 4500ms
+  setTimeout(function(){ if(loader && !loader.classList.contains('out')){ hideLoader(); } }, 4500);
+
+  // ====== FILM GRAIN ======
+  (function(){
+    var c = document.getElementById('gc');
+    if(!c) return;
+    var g = c.getContext('2d');
+    function rs(){ c.width = window.innerWidth; c.height = window.innerHeight; }
+    rs(); window.addEventListener('resize', rs, {passive:true});
+    var lastTick = 0;
+    function fr(t){
+      if(t - lastTick > 90){
+        lastTick = t;
+        var w = c.width, h = c.height;
+        var d = g.createImageData(w, h);
+        var data = d.data;
+        for(var i=0;i<data.length;i+=4){
+          var v = Math.random()*255 | 0;
+          data[i]=data[i+1]=data[i+2]=v;
+          data[i+3]=15;
+        }
+        g.putImageData(d,0,0);
+      }
+      requestAnimationFrame(fr);
+    }
+    requestAnimationFrame(fr);
+  })();
+
+  // ====== SCROLL PROGRESS BAR ======
+  var bar = document.getElementById('progress');
+  function updateProgress(){
+    var h = document.documentElement;
+    var max = (h.scrollHeight - h.clientHeight);
+    var pct = max > 0 ? (h.scrollTop / max) : 0;
+    if(bar) bar.style.width = (pct * 100).toFixed(2) + '%';
+  }
+  window.addEventListener('scroll', updateProgress, {passive:true});
+
+  // ====== GOLD CURSOR + LAGGING RING (desktop only) ======
+  if (matchMedia('(hover:hover) and (pointer:fine)').matches){
+    var cur = document.getElementById('cursor');
+    var ring = document.getElementById('cursor-ring');
+    var tx=0,ty=0,rx=0,ry=0;
+    document.addEventListener('mousemove', function(e){ tx=e.clientX; ty=e.clientY; if(cur){cur.style.left=tx+'px';cur.style.top=ty+'px';} }, {passive:true});
+    function tick(){
+      rx += (tx-rx)*0.18; ry += (ty-ry)*0.18;
+      if(ring){ ring.style.left=rx+'px'; ring.style.top=ry+'px'; }
+      requestAnimationFrame(tick);
+    }
+    tick();
+    document.querySelectorAll('a, button, .cta-button, .chip').forEach(function(el){
+      el.addEventListener('mouseenter', function(){ if(ring){ring.style.width='56px';ring.style.height='56px';ring.style.borderColor='var(--gold)';} });
+      el.addEventListener('mouseleave', function(){ if(ring){ring.style.width='36px';ring.style.height='36px';ring.style.borderColor='var(--gold-line)';} });
+    });
+  }
+
+  // ====== INTERSECTION OBSERVERS (started after loader) ======
+  function startObservers(){
+    if(observersStarted) return;
+    observersStarted = true;
+
+    // Reveal animations
+    var reveals = document.querySelectorAll('.r,.r2,.r3,.tier');
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
+      });
+    },{threshold:.15, rootMargin:'0px 0px -10% 0px'});
+    reveals.forEach(function(el){ io.observe(el); });
+
+    // ====== EMPLOYEE PANELS — scroll-driven transitions ======
+    var counter = document.getElementById('empCounter');
+    var counterNum = document.getElementById('empCounterNum');
+    var section = document.querySelector('[data-emp-section]');
+    var panels = Array.from(document.querySelectorAll('.emp-panel'));
+
+    // Section-level observer to show/hide global counter
+    var secIo = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.target === section){
+          counter.classList.toggle('show', e.isIntersecting);
+        }
+      });
+    },{threshold:0});
+    if(section) secIo.observe(section);
+
+    // Per-panel: trigger transition video, then settle into avatar
+    var panelIo = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        var panel = e.target;
+        if(e.isIntersecting && e.intersectionRatio > 0.4){
+          var idx = panel.getAttribute('data-emp-index');
+          if(counterNum) counterNum.textContent = String(idx).padStart(2,'0');
+          if(!panel.classList.contains('played')){
+            panel.classList.add('played');
+            var v = panel.querySelector('.transition-video');
+            if(v){
+              try{
+                v.currentTime = 0;
+                var p = v.play();
+                if(p && typeof p.then === 'function'){ p.catch(function(){}); }
+                v.addEventListener('ended', function once(){
+                  panel.classList.add('settled');
+                  v.removeEventListener('ended', once);
+                });
+                // Backup: settle after 6s if video doesn't fire ended
+                setTimeout(function(){ panel.classList.add('settled'); }, 6500);
+              }catch(_){
+                panel.classList.add('settled');
+              }
+            } else {
+              // No transition video (panel 1) — settle immediately
+              panel.classList.add('settled');
+            }
+          }
+        }
+      });
+    },{threshold:[0,.4,.6,.9], rootMargin:'-15% 0px -15% 0px'});
+    panels.forEach(function(p){ panelIo.observe(p); });
+
+    // ====== AMBIENT BACKGROUND MOOD SWAP ======
+    // Sections with data-mood-target dictate which video the body shows.
+    // Track every target's current visible-area in a map; pick argmax each tick.
+    var moodTargets = Array.from(document.querySelectorAll('[data-mood-target], #hero, footer'));
+    var current = 'veil';
+    document.body.dataset.mood = current;
+
+    function moodFor(el){
+      if(!el) return null;
+      if(el.id === 'hero') return 'veil';
+      if(el.tagName === 'FOOTER') return 'dark';
+      return el.getAttribute('data-mood-target');
+    }
+
+    function recomputeMood(){
+      var vh = window.innerHeight;
+      var best = null, bestArea = 0;
+      moodTargets.forEach(function(el){
+        var r = el.getBoundingClientRect();
+        var visible = Math.max(0, Math.min(r.bottom, vh) - Math.max(r.top, 0));
+        if(visible > bestArea){
+          bestArea = visible;
+          best = el;
+        }
+      });
+      var mood = moodFor(best) || 'veil';
+      if(mood !== current){
+        current = mood;
+        document.body.dataset.mood = current;
+      }
+    }
+
+    // Run on scroll (rAF-throttled) and on resize
+    var ticking = false;
+    function onScrollMood(){
+      if(ticking) return;
+      ticking = true;
+      requestAnimationFrame(function(){ recomputeMood(); ticking = false; });
+    }
+    window.addEventListener('scroll', onScrollMood, {passive:true});
+    window.addEventListener('resize', recomputeMood, {passive:true});
+    recomputeMood();
+
+    updateProgress();
+  }
+
+  // ====== AUTOPLAY KICK (Safari sometimes refuses muted-autoplay until first interaction) ======
+  function kickVideos(){
+    document.querySelectorAll('.ambient video').forEach(function(v){
+      var p = v.play(); if(p && typeof p.then === 'function'){ p.catch(function(){}); }
+    });
+  }
+  document.addEventListener('click', kickVideos, {once:true});
+  document.addEventListener('touchstart', kickVideos, {once:true, passive:true});
+  document.addEventListener('keydown', kickVideos, {once:true});
+
+})();
+</script>
+</body>
+</html>
